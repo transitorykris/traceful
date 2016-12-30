@@ -51,15 +51,6 @@ func (s *Server) GetTracerouteHandler() http.HandlerFunc {
 			opts = append(opts, TimeoutOpt(timeout))
 		}
 
-		if r.URL.Query().Get("port") != "" {
-			port, err := strconv.Atoi(r.URL.Query().Get("port,"))
-			if err != nil {
-				httpResponse(w, &errorResponse{Error: err.Error()}, http.StatusInternalServerError)
-				return
-			}
-			opts = append(opts, PortOpt(port))
-		}
-
 		if r.URL.Query().Get("size") != "" {
 			size, err := strconv.Atoi(r.URL.Query().Get("size"))
 			if err != nil {
