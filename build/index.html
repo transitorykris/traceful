@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>u1m API</title>
+    <title>Traceful</title>
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
     <link rel="stylesheet" type="text/css" href="index.css">
 </head>
@@ -34,6 +34,15 @@ $ curl -s http://traceful.jn.gl/traceroute/twitter.com | jq
             </pre>
         </div>
     </div>
+
+    <p>You can also supply optional parameters</p>
+    <table>
+      <tr><th>Parameter</th><th>Values</th></tr>
+      <tr><td class="param">hops</td><td>1 through 255</td></tr>
+      <tr><td class="param">retries</td><td>1 through 10</td></tr>
+      <tr><td class="param">timeout</td><td>1 through 5000 in milliseconds</td></tr>
+      <tr><td class="param">size</td><td>1 through 1400 bytes</td></tr>
+    </table>
 
     <p>The source code for this service is available on <a href="https://github.com/transitorykris/traceful">Github</a></p>
     <p>A docker image is available on <a href="https://hub.docker.com/r/transitorykris/traceful/">Docker Hub</a></p>

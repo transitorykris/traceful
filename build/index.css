@@ -27,3 +27,8 @@ h2 {
     margin-top: 25px;
     border-top: 1px grey solid;
 }
+
+.param {
+  font-family: monospace;
+  font-size: 16px;
+}
