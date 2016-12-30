@@ -1,0 +1,44 @@
+<html>
+<head>
+    <title>u1m API</title>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+    <link rel="stylesheet" type="text/css" href="index.css">
+</head>
+<body>
+    <h1>traceful.jn.gl</h1>
+
+    <p>This is an example of traceful, a very small service that performs a traceroute for the client.</p>
+
+    <div class="example">
+        <p>A simple traceroute:</p>
+        <div class="code">
+            <pre>
+$ curl -s http://traceful.jn.gl/traceroute/twitter.com | jq
+{
+  "destination": "twitter.com",
+  "hops": [
+    {
+      "ttl": 1,
+      "host": "ip-172-17-0-1.us-west-2.compute.internal.",
+      "address": "172.17.0.1",
+      "rtt": 70414
+    },
+    {
+      "ttl": 2,
+      "host": "ec2-50-112-0-96.us-west-2.compute.amazonaws.com.",
+      "address": "50.112.0.96",
+      "rtt": 1402941
+    },
+
+...snip
+            </pre>
+        </div>
+    </div>
+
+    <p>The source code for this service is available on <a href="https://github.com/transitorykris/traceful">Github</a></p>
+    <p>A docker image is available on <a href="https://hub.docker.com/r/transitorykris/traceful/">Docker Hub</a></p>
+
+    <div class="footer">
+        <div>This API is free to use. It is provided as-is without warranty. Questions, comments: <a href="https://twitter.com/transitorykris">@transitorykris</a> on Twitter</div>
+    </div>
+</body>

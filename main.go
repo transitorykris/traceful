@@ -36,6 +36,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.Handle("/traceroute/{dest}", s.GetTracerouteHandler()).Methods("GET")
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("build")))
 
 	logger.Info("Starting API server")
 	err = http.ListenAndServe(spec.Bind, r)
