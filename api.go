@@ -13,6 +13,45 @@ type Traceroute struct {
 	Hops        []Hop  `json:"hops"`
 }
 
+// ParamsToOpts converts the query params into TraceOpts
+func ParamsToOpts(r *http.Request) ([]TraceOpt, error) {
+	var opts []TraceOpt
+
+	if r.URL.Query().Get("hops") != "" {
+		hops, err := strconv.Atoi(r.URL.Query().Get("hops"))
+		if err != nil {
+			return opts, err
+		}
+		opts = append(opts, HopsOpt(hops))
+	}
+
+	if r.URL.Query().Get("retries") != "" {
+		retries, err := strconv.Atoi(r.URL.Query().Get("retries"))
+		if err != nil {
+			return opts, err
+		}
+		opts = append(opts, RetriesOpt(retries))
+	}
+
+	if r.URL.Query().Get("timeout") != "" {
+		timeout, err := strconv.Atoi(r.URL.Query().Get("timeout"))
+		if err != nil {
+			return opts, err
+		}
+		opts = append(opts, TimeoutOpt(timeout))
+	}
+
+	if r.URL.Query().Get("size") != "" {
+		size, err := strconv.Atoi(r.URL.Query().Get("size"))
+		if err != nil {
+			return opts, err
+		}
+		opts = append(opts, SizeOpt(size))
+	}
+
+	return opts, nil
+}
+
 // GetTracerouteHandler performs a live traceroute
 func (s *Server) GetTracerouteHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -22,48 +61,14 @@ func (s *Server) GetTracerouteHandler() http.HandlerFunc {
 		vars := mux.Vars(r)
 		dest := vars["dest"]
 
-		var opts []TraceOpt
-
-		if r.URL.Query().Get("hops") != "" {
-			hops, err := strconv.Atoi(r.URL.Query().Get("hops"))
-			if err != nil {
-				httpResponse(w, &errorResponse{Error: err.Error()}, http.StatusInternalServerError)
-				return
-			}
-			opts = append(opts, HopsOpt(hops))
+		opts, err := ParamsToOpts(r)
+		if err != nil {
+			httpResponse(w, &errorResponse{Error: err.Error()}, http.StatusBadRequest)
+			return
 		}
-
-		if r.URL.Query().Get("retries") != "" {
-			retries, err := strconv.Atoi(r.URL.Query().Get("retries"))
-			if err != nil {
-				httpResponse(w, &errorResponse{Error: err.Error()}, http.StatusInternalServerError)
-				return
-			}
-			opts = append(opts, RetriesOpt(retries))
-		}
-
-		if r.URL.Query().Get("timeout") != "" {
-			timeout, err := strconv.Atoi(r.URL.Query().Get("timeout"))
-			if err != nil {
-				httpResponse(w, &errorResponse{Error: err.Error()}, http.StatusInternalServerError)
-				return
-			}
-			opts = append(opts, TimeoutOpt(timeout))
-		}
-
-		if r.URL.Query().Get("size") != "" {
-			size, err := strconv.Atoi(r.URL.Query().Get("size"))
-			if err != nil {
-				httpResponse(w, &errorResponse{Error: err.Error()}, http.StatusInternalServerError)
-				return
-			}
-			opts = append(opts, SizeOpt(size))
-		}
-
 		response := Traceroute{
 			Destination: dest,
 		}
-		var err error
 		response.Hops, err = traceroute(dest, opts...)
 		if err != nil {
 			httpResponse(w, &errorResponse{Error: err.Error()}, http.StatusInternalServerError)
