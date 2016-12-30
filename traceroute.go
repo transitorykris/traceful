@@ -78,7 +78,6 @@ func RetriesOpt(retries int) func(*TraceConfig) error {
 // SizeOpt sets the maximum packet size in the config
 func SizeOpt(size int) func(*TraceConfig) error {
 	return func(t *TraceConfig) error {
-		fmt.Println("Processing size opt", size)
 		if size < 1 || size > 1400 {
 			return fmt.Errorf("packet size must be between 1 and 1400 inclusive")
 		}
@@ -101,7 +100,6 @@ func traceroute(dest string, opts ...TraceOpt) ([]Hop, error) {
 
 	config := NewTraceConfig()
 	for _, opt := range opts {
-		fmt.Println("Processing opt")
 		if err = opt(config); err != nil {
 			return hops, err
 		}
@@ -113,7 +111,6 @@ func traceroute(dest string, opts ...TraceOpt) ([]Hop, error) {
 	traceopts.SetPort(config.Port)
 	traceopts.SetRetries(config.Retries)
 	traceopts.SetTimeoutMs(config.Timeout)
-	fmt.Printf("%+v\n", traceopts)
 	out, err := tr.Traceroute(dest, traceopts)
 	if err != nil {
 		return hops, err
