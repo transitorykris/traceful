@@ -22,3 +22,16 @@ func httpResponse(w http.ResponseWriter, v interface{}, status int) error {
 	fmt.Fprint(w, string(body))
 	return nil
 }
+
+// streamResponse is a nice wrapper for sending multiple JSON responses
+func streamResponse(w http.ResponseWriter, v interface{}) error {
+	body, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(w, string(body))
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	}
+	return nil
+}

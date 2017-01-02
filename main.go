@@ -35,6 +35,7 @@ func main() {
 	s.log = logger
 
 	r := mux.NewRouter()
+	r.Handle("/stream/{dest}", s.GetStreamTracerouteHandler()).Methods("GET")
 	r.Handle("/traceroute/{dest}", s.GetTracerouteHandler()).Methods("GET")
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("build")))
 

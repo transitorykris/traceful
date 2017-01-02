@@ -78,3 +78,50 @@ func (s *Server) GetTracerouteHandler() http.HandlerFunc {
 		httpResponse(w, &response, http.StatusOK)
 	})
 }
+
+// GetStreamTracerouteHandler performs a live traceroute
+func (s *Server) GetStreamTracerouteHandler() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		s.log.WithField("func", "GetLiveTracerouteHandler")
+		s.log.Infoln(r.RemoteAddr, r.Method, r.URL.Path, r.URL.Query())
+
+		vars := mux.Vars(r)
+		dest := vars["dest"]
+
+		opts, err := ParamsToOpts(r)
+		if err != nil {
+			httpResponse(w, &errorResponse{Error: err.Error()}, http.StatusBadRequest)
+			return
+		}
+
+		ch := make(chan Hop, 0)
+		cn, ok := w.(http.CloseNotifier)
+		if !ok {
+			httpResponse(w, errorResponse{Error: "Cannot stream"}, http.StatusInternalServerError)
+			return
+		}
+		go func() {
+			w.Header().Set("Content-Type", "application/stream+json")
+			closeNotify := cn.CloseNotify()
+			for {
+				select {
+				case hop, ok := <-ch:
+					if !ok {
+						streamResponse(w, &errorResponse{Error: "problem completing traceroute"})
+						return
+					}
+					streamResponse(w, hop)
+				case <-closeNotify:
+					return
+				}
+			}
+		}()
+
+		err = liveTraceroute(dest, ch, opts...)
+		if err != nil {
+			streamResponse(w, &errorResponse{Error: err.Error()})
+			return
+		}
+		return
+	})
+}
