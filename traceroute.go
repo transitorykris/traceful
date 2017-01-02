@@ -102,17 +102,17 @@ func MakeTracerouteOptions(config *TraceConfig) *tr.TracerouteOptions {
 	return t
 }
 
-// Hop represents an individual hop in the traceroute
-type Hop struct {
+// TraceHop represents an individual hop in the traceroute
+type TraceHop struct {
 	TTL     int           `json:"ttl"`
 	Host    string        `json:"host"`
 	Address string        `json:"address"`
 	RTT     time.Duration `json:"rtt"`
 }
 
-func traceroute(dest string, opts ...TraceOpt) ([]Hop, error) {
+func traceroute(dest string, opts ...TraceOpt) ([]TraceHop, error) {
 	var err error
-	hops := []Hop{}
+	hops := []TraceHop{}
 
 	config, err := NewTraceConfig(opts...)
 	if err != nil {
@@ -124,7 +124,7 @@ func traceroute(dest string, opts ...TraceOpt) ([]Hop, error) {
 		return hops, err
 	}
 	for _, hop := range out.Hops {
-		hops = append(hops, Hop{
+		hops = append(hops, TraceHop{
 			TTL:     hop.TTL,
 			Host:    hop.HostOrAddressString(),
 			Address: hop.AddressString(),
@@ -134,9 +134,9 @@ func traceroute(dest string, opts ...TraceOpt) ([]Hop, error) {
 	return hops, nil
 }
 
-func liveTraceroute(dest string, ch chan Hop, done chan bool, opts ...TraceOpt) error {
+func liveTraceroute(dest string, ch chan TraceHop, done chan bool, opts ...TraceOpt) error {
 	var err error
-
+	fmt.Println("wtf livetraceroute")
 	config, err := NewTraceConfig(opts...)
 	if err != nil {
 		return err
@@ -150,7 +150,7 @@ func liveTraceroute(dest string, ch chan Hop, done chan bool, opts ...TraceOpt) 
 			done <- true
 			return nil
 		}
-		ch <- Hop{
+		ch <- TraceHop{
 			TTL:     hop.TTL,
 			Host:    hop.HostOrAddressString(),
 			Address: hop.AddressString(),

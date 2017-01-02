@@ -8,13 +8,14 @@ import (
 
 // Server represents our API server
 type Server struct {
-	db  *sqlx.DB
-	log *logrus.Logger
+	db       *sqlx.DB
+	log      *logrus.Logger
+	geoIPURL string
 }
 
 // NewServer creates a new server :)
-func NewServer() (*Server, error) {
-	return &Server{log: logrus.New()}, nil
+func NewServer(geoip string) (*Server, error) {
+	return &Server{log: logrus.New(), geoIPURL: geoip}, nil
 }
 
 // ConnectDB connects our server to the given DB

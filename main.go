@@ -12,7 +12,8 @@ import (
 
 // this service's configuration
 type specification struct {
-	Bind string `envconfig:"bind" default:":8080"`
+	Bind     string `envconfig:"bind" default:":8080"`
+	GeoIPURL string `envconfig:"geoip_url" default:"http://geoful.jn.gl"`
 }
 
 func main() {
@@ -32,7 +33,7 @@ func main() {
 	}
 	mainLogger.Info(spec)
 
-	s, err := NewServer()
+	s, err := NewServer(spec.GeoIPURL)
 	if err != nil {
 		mainLogger.Fatalln(err)
 	}
