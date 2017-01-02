@@ -23,7 +23,7 @@ func main() {
 	mainLogger := logger.WithField("func", "main")
 
 	// Seed the random number generator, transaction IDs are random
-	rand.Seed(time.Now().Unix())
+	rand.Seed(time.Now().UnixNano())
 
 	var spec specification
 	err = envconfig.Process("APP", &spec)
