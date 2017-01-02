@@ -1,7 +1,9 @@
 package main
 
 import (
+	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
@@ -18,19 +20,21 @@ func main() {
 
 	// Set up our logging options
 	logger := logrus.New()
-	logger.Formatter = new(logrus.TextFormatter)
-	logger.Level = logrus.DebugLevel
+	mainLogger := logger.WithField("func", "main")
+
+	// Seed the random number generator, transaction IDs are random
+	rand.Seed(time.Now().Unix())
 
 	var spec specification
 	err = envconfig.Process("APP", &spec)
 	if err != nil {
-		logger.Fatalln(err)
+		mainLogger.Fatalln(err)
 	}
-	logger.Info(spec)
+	mainLogger.Info(spec)
 
 	s, err := NewServer()
 	if err != nil {
-		logger.Fatalln(err)
+		mainLogger.Fatalln(err)
 	}
 	s.log = logger
 
@@ -39,9 +43,9 @@ func main() {
 	r.Handle("/traceroute/{dest}", s.GetTracerouteHandler()).Methods("GET")
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("build")))
 
-	logger.Info("Starting API server")
+	mainLogger.Info("Starting API server")
 	err = http.ListenAndServe(spec.Bind, r)
 	if err != nil {
-		logger.Errorln(err)
+		mainLogger.Errorln(err)
 	}
 }

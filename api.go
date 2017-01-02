@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/rand"
 	"net/http"
 	"strconv"
 
@@ -56,8 +57,8 @@ func ParamsToOpts(r *http.Request) ([]TraceOpt, error) {
 // GetTracerouteHandler performs a live traceroute
 func (s *Server) GetTracerouteHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s.log.WithField("func", "GetTraceroute")
-		s.log.Infoln(r.RemoteAddr, r.Method, r.URL.Path, r.URL.Query())
+		log := s.log.WithFields(logrus.Fields{"func": "GetTraceroute", "id": rand.Int63()})
+		log.WithFields(logrus.Fields{"remote": r.RemoteAddr, "method": r.Method, "path": r.URL.Path, "query": r.URL.Query()}).Infoln()
 
 		vars := mux.Vars(r)
 		dest := vars["dest"]
@@ -83,8 +84,8 @@ func (s *Server) GetTracerouteHandler() http.HandlerFunc {
 // GetStreamTracerouteHandler performs a live traceroute
 func (s *Server) GetStreamTracerouteHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s.log.WithField("func", "GetLiveTracerouteHandler")
-		s.log.Infoln(r.RemoteAddr, r.Method, r.URL.Path, r.URL.Query())
+		log := s.log.WithFields(logrus.Fields{"func": "GetStreamTracerouteHandler", "id": rand.Int63()})
+		log.WithFields(logrus.Fields{"remote": r.RemoteAddr, "method": r.Method, "path": r.URL.Path, "query": r.URL.Query()}).Infoln()
 
 		vars := mux.Vars(r)
 		dest := vars["dest"]
@@ -109,7 +110,7 @@ func (s *Server) GetStreamTracerouteHandler() http.HandlerFunc {
 				select {
 				case hop, ok := <-ch:
 					if !ok {
-						logrus.Errorln("problem completing traceroute")
+						log.Errorln("problem completing traceroute")
 						streamResponse(w, &errorResponse{Error: "problem completing traceroute"})
 						return
 					}
@@ -124,7 +125,7 @@ func (s *Server) GetStreamTracerouteHandler() http.HandlerFunc {
 
 		err = liveTraceroute(dest, ch, done, opts...)
 		if err != nil {
-			logrus.Errorln(err)
+			log.Errorln(err)
 			streamResponse(w, &errorResponse{Error: err.Error()})
 			return
 		}
