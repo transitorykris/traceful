@@ -17,7 +17,7 @@ type TraceConfig struct {
 }
 
 // NewTraceConfig creates a new TraceConfig with default values
-func NewTraceConfig() *TraceConfig {
+func NewTraceConfig(opts ...TraceOpt) (*TraceConfig, error) {
 	config := &TraceConfig{
 		Port:    33434,
 		Hops:    64,
@@ -25,7 +25,12 @@ func NewTraceConfig() *TraceConfig {
 		Retries: 3,
 		Size:    52,
 	}
-	return config
+	for _, opt := range opts {
+		if err := opt(config); err != nil {
+			return config, err
+		}
+	}
+	return config, nil
 }
 
 // TraceOpt is passed into traceroute to set optional configuration
@@ -86,6 +91,17 @@ func SizeOpt(size int) func(*TraceConfig) error {
 	}
 }
 
+// MakeTracerouteOptions makes a TracerouteOptions for the github.com/aeden/traceroute package
+func MakeTracerouteOptions(config *TraceConfig) *tr.TracerouteOptions {
+	t := &tr.TracerouteOptions{}
+	t.SetMaxHops(config.Hops)
+	t.SetPacketSize(config.Size)
+	t.SetPort(config.Port)
+	t.SetRetries(config.Retries)
+	t.SetTimeoutMs(config.Timeout)
+	return t
+}
+
 // Hop represents an individual hop in the traceroute
 type Hop struct {
 	TTL     int           `json:"ttl"`
@@ -98,19 +114,11 @@ func traceroute(dest string, opts ...TraceOpt) ([]Hop, error) {
 	var err error
 	hops := []Hop{}
 
-	config := NewTraceConfig()
-	for _, opt := range opts {
-		if err = opt(config); err != nil {
-			return hops, err
-		}
+	config, err := NewTraceConfig(opts...)
+	if err != nil {
+		return hops, err
 	}
-
-	traceopts := &tr.TracerouteOptions{}
-	traceopts.SetMaxHops(config.Hops)
-	traceopts.SetPacketSize(config.Size)
-	traceopts.SetPort(config.Port)
-	traceopts.SetRetries(config.Retries)
-	traceopts.SetTimeoutMs(config.Timeout)
+	traceopts := MakeTracerouteOptions(config)
 	out, err := tr.Traceroute(dest, traceopts)
 	if err != nil {
 		return hops, err
@@ -129,19 +137,11 @@ func traceroute(dest string, opts ...TraceOpt) ([]Hop, error) {
 func liveTraceroute(dest string, ch chan Hop, done chan bool, opts ...TraceOpt) error {
 	var err error
 
-	config := NewTraceConfig()
-	for _, opt := range opts {
-		if err = opt(config); err != nil {
-			return err
-		}
+	config, err := NewTraceConfig(opts...)
+	if err != nil {
+		return err
 	}
-
-	traceopts := &tr.TracerouteOptions{}
-	traceopts.SetMaxHops(config.Hops)
-	traceopts.SetPacketSize(config.Size)
-	traceopts.SetPort(config.Port)
-	traceopts.SetRetries(config.Retries)
-	traceopts.SetTimeoutMs(config.Timeout)
+	traceopts := MakeTracerouteOptions(config)
 	trch := make(chan tr.TracerouteHop, 0)
 	go tr.Traceroute(dest, traceopts, trch)
 	for {
