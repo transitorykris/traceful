@@ -126,7 +126,7 @@ func traceroute(dest string, opts ...TraceOpt) ([]Hop, error) {
 	return hops, nil
 }
 
-func liveTraceroute(dest string, ch chan Hop, opts ...TraceOpt) error {
+func liveTraceroute(dest string, ch chan Hop, done chan bool, opts ...TraceOpt) error {
 	var err error
 
 	config := NewTraceConfig()
@@ -143,24 +143,18 @@ func liveTraceroute(dest string, ch chan Hop, opts ...TraceOpt) error {
 	traceopts.SetRetries(config.Retries)
 	traceopts.SetTimeoutMs(config.Timeout)
 	trch := make(chan tr.TracerouteHop, 0)
-	go func() {
-		for {
-			hop, ok := <-trch
-			if !ok {
-				return
-			}
-			ch <- Hop{
-				TTL:     hop.TTL,
-				Host:    hop.HostOrAddressString(),
-				Address: hop.AddressString(),
-				RTT:     hop.ElapsedTime,
-			}
+	go tr.Traceroute(dest, traceopts, trch)
+	for {
+		hop, ok := <-trch
+		if !ok {
+			done <- true
+			return nil
 		}
-	}()
-	_, err = tr.Traceroute(dest, traceopts, trch)
-	if err != nil {
-		return err
+		ch <- Hop{
+			TTL:     hop.TTL,
+			Host:    hop.HostOrAddressString(),
+			Address: hop.AddressString(),
+			RTT:     hop.ElapsedTime,
+		}
 	}
-
-	return nil
 }

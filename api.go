@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 )
 
@@ -95,30 +96,35 @@ func (s *Server) GetStreamTracerouteHandler() http.HandlerFunc {
 		}
 
 		ch := make(chan Hop, 0)
+		done := make(chan bool)
 		cn, ok := w.(http.CloseNotifier)
 		if !ok {
 			httpResponse(w, errorResponse{Error: "Cannot stream"}, http.StatusInternalServerError)
 			return
 		}
+		closeNotify := cn.CloseNotify()
 		go func() {
 			w.Header().Set("Content-Type", "application/stream+json")
-			closeNotify := cn.CloseNotify()
 			for {
 				select {
 				case hop, ok := <-ch:
 					if !ok {
+						logrus.Errorln("problem completing traceroute")
 						streamResponse(w, &errorResponse{Error: "problem completing traceroute"})
 						return
 					}
 					streamResponse(w, hop)
+				case <-done:
+					return
 				case <-closeNotify:
 					return
 				}
 			}
 		}()
 
-		err = liveTraceroute(dest, ch, opts...)
+		err = liveTraceroute(dest, ch, done, opts...)
 		if err != nil {
+			logrus.Errorln(err)
 			streamResponse(w, &errorResponse{Error: err.Error()})
 			return
 		}
