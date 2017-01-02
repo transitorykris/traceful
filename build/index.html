@@ -9,8 +9,11 @@
 
     <p>This is an example of traceful, a very small service that performs a traceroute for the client.</p>
 
+    <p>The source code for this service is available on <a href="https://github.com/transitorykris/traceful">Github</a></p>
+    <p>A docker image is available on <a href="https://hub.docker.com/r/transitorykris/traceful/">Docker Hub</a></p>
+
     <div class="example">
-        <p>A simple traceroute:</p>
+        <p>A simple traceroute, returns JSON when complete:</p>
         <div class="code">
             <pre>
 $ curl -s http://traceful.jn.gl/traceroute/twitter.com | jq
@@ -35,7 +38,28 @@ $ curl -s http://traceful.jn.gl/traceroute/twitter.com | jq
         </div>
     </div>
 
-    <p>You can also supply optional parameters</p>
+    <div class="example">
+      <p>To stream responses use the /stream endpoint</p>
+      <div class="code">
+          <pre>
+$ curl -i  http://traceful.jn.gl/stream/google.com
+HTTP/1.1 200 OK
+Content-Type: application/stream+json
+Date: Mon, 02 Jan 2017 03:10:56 GMT
+Transfer-Encoding: chunked
+
+{"ttl":1,"host":"10.0.2.1","address":"10.0.2.1","rtt":1859358}
+{"ttl":2,"host":"96.120.89.165","address":"96.120.89.165","rtt":10738752}
+{"ttl":3,"host":"te-0-7-0-2-sur03.sffolsom.ca.sfba.comcast.net.","address":"68.85.103.177","rtt":13799290}
+{"ttl":4,"host":"be-209-ar01.santaclara.ca.sfba.comcast.net.","address":"68.85.57.241","rtt":11344438}
+{"ttl":5,"host":"be-33651-cr01.sunnyvale.ca.ibone.comcast.net.","address":"68.86.90.93","rtt":13739395}
+
+...snip
+          </pre>
+      </div>
+    </div>
+
+    <p>You can also supply optional parameters to both endpoints</p>
     <table>
       <tr><th>Parameter</th><th>Values</th></tr>
       <tr><td class="param">hops</td><td>1 through 255</td></tr>
@@ -43,9 +67,6 @@ $ curl -s http://traceful.jn.gl/traceroute/twitter.com | jq
       <tr><td class="param">timeout</td><td>1 through 5000 in milliseconds</td></tr>
       <tr><td class="param">size</td><td>1 through 1400 bytes</td></tr>
     </table>
-
-    <p>The source code for this service is available on <a href="https://github.com/transitorykris/traceful">Github</a></p>
-    <p>A docker image is available on <a href="https://hub.docker.com/r/transitorykris/traceful/">Docker Hub</a></p>
 
     <div class="footer">
         <div>This API is free to use. It is provided as-is without warranty. Questions, comments: <a href="https://twitter.com/transitorykris">@transitorykris</a> on Twitter</div>
