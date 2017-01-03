@@ -33,6 +33,9 @@ type GeoIP struct {
 // getGeoIP gets geoip data for an IP
 func (s *Server) getGeoIP(ip string) (GeoIP, error) {
 	geoip := GeoIP{}
+	if s.geoIPURL == "" {
+		return geoip, nil
+	}
 	resp, err := http.Get(fmt.Sprintf("%s/ip/%s", s.geoIPURL, ip))
 	if err != nil {
 		return geoip, err
